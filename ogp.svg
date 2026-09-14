@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <pattern id="dots" width="34" height="34" patternUnits="userSpaceOnUse">
+      <circle cx="6" cy="6" r="3.4" fill="#1E2340" opacity="0.13"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="630" fill="#FFD23F"/>
+  <rect width="1200" height="630" fill="url(#dots)"/>
+
+  <rect x="44" y="44" width="1112" height="542" rx="42" fill="none" stroke="#1E2340" stroke-width="7"/>
+
+  <rect x="96" y="112" width="374" height="54" rx="27" fill="#1E2340"/>
+  <text x="283" y="149" text-anchor="middle"
+        font-family="Hiragino Maru Gothic ProN, Hiragino Sans, sans-serif"
+        font-size="27" font-weight="700" fill="#FFD23F">寝過ごし先シミュレーター</text>
+
+  <g font-family="Hiragino Maru Gothic ProN, Hiragino Sans, sans-serif"
+     font-size="128" font-weight="800" letter-spacing="-1">
+    <text x="96" y="318" fill="none" stroke="#1E2340" stroke-width="14" stroke-linejoin="round">起きたら、○○。</text>
+    <text x="96" y="318" fill="#1E2340">起きたら、<tspan fill="#FF4E88">○○</tspan>。</text>
+  </g>
+
+  <text x="96" y="392" font-family="Hiragino Maru Gothic ProN, Hiragino Sans, sans-serif"
+        font-size="36" font-weight="700" fill="#1E2340">その電車で寝たら、どこまで運ばれるか。</text>
+
+  <rect x="96" y="446" width="796" height="82" rx="41" fill="#FFFFFF" stroke="#1E2340" stroke-width="5"/>
+  <text x="494" y="498" text-anchor="middle"
+        font-family="Hiragino Maru Gothic ProN, Hiragino Sans, sans-serif"
+        font-size="30" font-weight="700" fill="#1E2340">首都圏34路線　終着駅・県名市名・タクシー代まで</text>
+
+  <circle cx="1010" cy="487" r="41" fill="#FF4E88" stroke="#1E2340" stroke-width="5"/>
+  <circle cx="1088" cy="487" r="41" fill="#2EC4F3" stroke="#1E2340" stroke-width="5"/>
+</svg>

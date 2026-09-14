@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b1120"/>
+      <stop offset="1" stop-color="#050810"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffb020" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#ffb020" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#ffb020" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#sky)"/>
+
+  <g fill="#ffb020" opacity="0.55">
+    <circle cx="128" cy="96" r="2"/><circle cx="292" cy="152" r="1.6"/><circle cx="1012" cy="88" r="2.2"/>
+    <circle cx="1108" cy="196" r="1.6"/><circle cx="884" cy="126" r="1.4"/><circle cx="196" cy="214" r="1.4"/>
+  </g>
+  <g fill="#9fc4ff" opacity="0.42">
+    <circle cx="412" cy="104" r="1.6"/><circle cx="744" cy="168" r="1.8"/><circle cx="1060" cy="142" r="1.4"/>
+    <circle cx="612" cy="92" r="1.4"/><circle cx="960" cy="228" r="1.6"/>
+  </g>
+
+  <rect x="80" y="248" width="420" height="2" fill="url(#glow)"/>
+
+  <text x="80" y="212" font-family="Hiragino Sans, Hiragino Kaku Gothic ProN, sans-serif"
+        font-size="26" font-weight="600" fill="#ffb020" letter-spacing="6">寝過ごし先シミュレーター</text>
+
+  <text x="80" y="368" font-family="Hiragino Sans, Hiragino Kaku Gothic ProN, sans-serif"
+        font-size="122" font-weight="800" fill="#e9eef8" letter-spacing="-2">起きたら、<tspan fill="#ffb020">○○</tspan>。</text>
+
+  <text x="80" y="440" font-family="Hiragino Sans, Hiragino Kaku Gothic ProN, sans-serif"
+        font-size="34" font-weight="600" fill="#97a2ba">その電車で寝たら、どこまで運ばれるか。</text>
+
+  <rect x="80" y="498" width="1040" height="1" fill="#242e42"/>
+
+  <text x="80" y="556" font-family="Hiragino Sans, Hiragino Kaku Gothic ProN, sans-serif"
+        font-size="27" font-weight="600" fill="#66718a">首都圏34路線　終着駅・県名市名・タクシー代まで表示</text>
+</svg>
