@@ -15,6 +15,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Baloo+2:wght@600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <style>
 :root{
   --ink:#1E2340;
@@ -163,6 +165,26 @@ footer b{color:var(--ink);font-weight:800}
   .dest{animation:in .3s ease both}
   @keyframes in{from{opacity:.001;transform:translateY(5px)}to{opacity:1;transform:none}}
 }
+
+.mapzone{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.mapbtn,.gmap{font-family:inherit;font-size:12px;font-weight:800;padding:7px 13px;border-radius:999px;
+  border:2.5px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer;line-height:1.4;
+  text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+.mapbtn:hover,.gmap:hover{background:var(--ground)}
+.mapbtn[aria-expanded="true"]{background:var(--ink);color:#fff}
+.mapbtn:focus-visible,.gmap:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+.mapbox{margin-top:10px;height:clamp(200px,44vw,280px);border:2.5px solid var(--ink);
+  border-radius:14px;overflow:hidden;background:var(--ground)}
+.mapbox .leaflet-container{height:100%;font-family:inherit;background:var(--ground)}
+.maperr{padding:18px;font-size:12px;font-weight:700;color:var(--sub);text-align:center;line-height:1.8}
+.pin{overflow:visible}
+.pin b{display:block;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px var(--ink)}
+.pin i{position:absolute;left:22px;top:-4px;white-space:nowrap;font-style:normal;font-size:11px;
+  font-weight:800;color:var(--ink);background:rgba(255,255,255,.92);padding:2px 6px;
+  border-radius:7px;border:2px solid var(--ink)}
+.pin.home b{background:var(--cyan)}
+.pin.dest b{background:var(--pink)}
+.leaflet-control-attribution{font-size:9px!important}
 </style>
 </head>
 <body>
@@ -716,7 +738,7 @@ combo(elHome,document.getElementById("home-sg"));
 combo(elCur,document.getElementById("cur-sg"));
 
 /* ── 描画 ─────────────────────────────────────────── */
-function destCard(d,homeP,night){
+function destCard(d,homeP,night,homeN){
   var p=P[d.n],km=hav(homeP,p);
   var L=km==null?null:lv(km);
   var far=km!=null&&km>=25;
@@ -734,6 +756,16 @@ function destCard(d,homeP,night){
         '<span class="lv" style="color:'+L.c+'">'+L.t+'</span></div>'+
         '<div class="bar"><i style="width:'+Math.max(4,Math.min(100,Math.round(km/70*100)))+
         '%;background:linear-gradient(90deg,'+L.c+'88,'+L.c+')"></i></div></div>')+
+    (!p?'':
+      '<div class="mapzone">'+
+        '<button type="button" class="mapbtn" aria-expanded="true"'+
+        ' data-hlat="'+homeP[0]+'" data-hlng="'+homeP[1]+'" data-hn="'+homeN+'"'+
+        ' data-dlat="'+p[0]+'" data-dlng="'+p[1]+'" data-dn="'+d.n+'">地図を閉じる</button>'+
+        '<a class="gmap" target="_blank" rel="noopener"'+
+        ' href="https://www.google.com/maps/dir/?api=1&amp;origin='+homeP[0]+','+homeP[1]+
+        '&amp;destination='+p[0]+','+p[1]+'">Googleマップ</a>'+
+      '</div>'+
+      '<div class="mapbox"></div>')+
   '</div>';
 }
 
@@ -770,7 +802,7 @@ function render(homeN,curN,tz){
       h+='<div class="dir"><div class="warnbox">'+L.loopNote+'</div>'+
          '<div class="dirhead" style="margin-top:14px"><span class="arrow">▸</span>'+
          '<span class="dirname">終電後に降ろされる可能性がある駅</span></div>'+
-         L.loopEnds.map(function(d){return destCard(d,homeP,night)}).join("")+'</div>';
+         L.loopEnds.map(function(d){return destCard(d,homeP,night,homeN)}).join("")+'</div>';
     }else{
       [0,1].forEach(function(d){
         if(d===0&&i===0)return;
@@ -784,7 +816,7 @@ function render(homeN,curN,tz){
         }
         h+='<div class="dir"><div class="dirhead"><span class="arrow">▸</span>'+
            '<span class="dirname">'+e.label+'</span>'+tag+'</div>'+
-           e.dest.map(function(x){return destCard(x,homeP,night)}).join("")+
+           e.dest.map(function(x){return destCard(x,homeP,night,homeN)}).join("")+
            '<div class="turnback"><span class="h">折り返し・途中止まりの可能性</span>'+e.turn+'</div></div>';
       });
     }
@@ -792,7 +824,71 @@ function render(homeN,curN,tz){
     h+='</div>';
   });
   box.innerHTML=h+'</div>';
+  watchMaps();
 }
+
+
+
+/* ── 地図 ──────────────────────────────────── */
+var MAP_LINE="#FF4E88";
+var GSI_URL="https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png";
+var GSI_ATTR='<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a>';
+var mapObs=null;
+
+function mapPin(kind,label){
+  return L.divIcon({className:"pin "+kind,html:"<b></b><i>"+label+"</i>",iconSize:[16,16],iconAnchor:[8,8]});
+}
+function buildMap(box){
+  if(box.getAttribute("data-ready"))return;
+  if(typeof L==="undefined")return;
+  var btn=box.parentNode.querySelector(".mapbtn");
+  if(!btn)return;
+  box.setAttribute("data-ready","1");
+  var d=btn.dataset,h=[+d.hlat,+d.hlng],t=[+d.dlat,+d.dlng];
+  var map=L.map(box,{scrollWheelZoom:false});
+  L.tileLayer(GSI_URL,{attribution:GSI_ATTR,maxZoom:17}).addTo(map);
+  L.polyline([h,t],{color:MAP_LINE,weight:3,opacity:.9,dashArray:"7 7"}).addTo(map);
+  L.marker(h,{icon:mapPin("home",d.hn)}).addTo(map);
+  L.marker(t,{icon:mapPin("dest",d.dn)}).addTo(map);
+  map.fitBounds(L.latLngBounds([h,t]).pad(.28));
+  setTimeout(function(){map.invalidateSize()},60);
+}
+function watchMaps(){
+  var all=document.querySelectorAll("#result .mapbox"),todo=[],i;
+  for(i=0;i<all.length;i++)if(!all[i].getAttribute("data-ready"))todo.push(all[i]);
+  if(!todo.length)return;
+  if(!window.IntersectionObserver){for(i=0;i<todo.length;i++)buildMap(todo[i]);return}
+  if(mapObs)mapObs.disconnect();
+  mapObs=new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(!e.isIntersecting)return;
+      buildMap(e.target);
+      if(e.target.getAttribute("data-ready"))mapObs.unobserve(e.target);
+    });
+  },{rootMargin:"500px 0px"});
+  for(i=0;i<todo.length;i++)mapObs.observe(todo[i]);
+}
+function toggleMap(btn){
+  var box=btn.parentNode.parentNode.querySelector(".mapbox");
+  if(btn.getAttribute("aria-expanded")==="true"){
+    box.hidden=true;btn.setAttribute("aria-expanded","false");btn.textContent="地図を見る";
+  }else{
+    box.hidden=false;btn.setAttribute("aria-expanded","true");btn.textContent="地図を閉じる";
+    buildMap(box);
+  }
+}
+document.getElementById("result").addEventListener("click",function(e){
+  var b=e.target;
+  while(b&&b!==this&&!(b.classList&&b.classList.contains("mapbtn")))b=b.parentNode;
+  if(b&&b!==this)toggleMap(b);
+});
+document.addEventListener("DOMContentLoaded",watchMaps);
+window.addEventListener("load",function(){
+  if(typeof L!=="undefined"){watchMaps();return}
+  var all=document.querySelectorAll("#result .mapbox");
+  for(var i=0;i<all.length;i++)
+    all[i].innerHTML='<div class="maperr">地図を読み込めませんでした。<br>通信環境を確認して、ページを再読み込みしてください。</div>';
+});
 
 /* ── 実行・保存 ───────────────────────────────────── */
 var KEY="okitara-v1";
